@@ -1,8 +1,7 @@
-package com.codehive.apiclima.dto;
+package com.codehive.apiclima.dtos;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.Value;
 
 import java.util.List;
 import java.util.Map;

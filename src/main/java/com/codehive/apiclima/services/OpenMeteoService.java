@@ -1,10 +1,12 @@
-package com.codehive.apiclima.service;
+package com.codehive.apiclima.services;
 
-import com.codehive.apiclima.dto.OpenMeteoProcessResponse;
-import com.codehive.apiclima.dto.OpenMeteoResponse;
+import com.codehive.apiclima.dtos.BaseResponse;
+import com.codehive.apiclima.dtos.OpenMeteoProcessResponse;
+import com.codehive.apiclima.dtos.OpenMeteoResponse;
 import com.codehive.apiclima.utils.CodeWeatherMap;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -16,21 +18,26 @@ import java.util.Map;
 @Service
 public class OpenMeteoService {
 
-    private final WebClient webClient;
+    private WebClient webClient;
     private final CodeWeatherMap codeWeatherMap;
+    @Value("${open_meteo.api.url}")
+    private String apiUrl;
 
-
-    public OpenMeteoService(
-            @Value("${open_meteo.api.url}") String baseUrl, CodeWeatherMap codeWeatherMap) {
+    @PostConstruct
+    public void init() {
+        String baseUrl = apiUrl;
         this.webClient = WebClient.builder()
                 .baseUrl(baseUrl)
                 .build();
+    }
+
+    public OpenMeteoService(CodeWeatherMap codeWeatherMap) {
         this.codeWeatherMap = codeWeatherMap;
     }
 
-    public OpenMeteoResponse getOriginalResponse(
+    public BaseResponse<OpenMeteoResponse> getOriginalResponse(
             double latitude, double longitude, String startDate, String endDate) {
-        return webClient.get()
+        OpenMeteoResponse response = webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .queryParam("latitude", latitude)
                         .queryParam("longitude", longitude)
@@ -42,13 +49,27 @@ public class OpenMeteoService {
                 .retrieve()
                 .bodyToMono(OpenMeteoResponse.class)
                 .block();
+
+        return BaseResponse.<OpenMeteoResponse>builder()
+                .data(response)
+                .message("Weather data retrieved successfully")
+                .success(Boolean.TRUE)
+                .httpStatus(HttpStatus.OK)
+                .build();
     }
 
-    public OpenMeteoProcessResponse getProcessResponse
-            (double latitude, double longitude, String startDate, String endDate){
+    public BaseResponse<OpenMeteoProcessResponse> getProcessResponse(
+            double latitude, double longitude, String startDate, String endDate) {
 
-        OpenMeteoResponse openMeteoResponse = getOriginalResponse(latitude, longitude, startDate, endDate);
-        return processResponse(openMeteoResponse);
+        OpenMeteoResponse openMeteoResponse = getOriginalResponse(latitude, longitude, startDate, endDate).getData();
+        OpenMeteoProcessResponse processResponse = processResponse(openMeteoResponse);
+
+        return BaseResponse.<OpenMeteoProcessResponse>builder()
+                .data(processResponse)
+                .message("Processed weather data retrieved successfully")
+                .success(Boolean.TRUE)
+                .httpStatus(HttpStatus.OK)
+                .build();
     }
 
     private OpenMeteoProcessResponse processResponse (OpenMeteoResponse openMeteoResponse){

@@ -1,8 +1,9 @@
-package com.codehive.apiclima.controller;
+package com.codehive.apiclima.controllers;
 
-import com.codehive.apiclima.dto.OpenMeteoProcessResponse;
-import com.codehive.apiclima.dto.OpenMeteoResponse;
-import com.codehive.apiclima.service.OpenMeteoService;
+import com.codehive.apiclima.dtos.BaseResponse;
+import com.codehive.apiclima.dtos.OpenMeteoProcessResponse;
+import com.codehive.apiclima.dtos.OpenMeteoResponse;
+import com.codehive.apiclima.services.OpenMeteoService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,7 +20,7 @@ public class WeatherController {
     }
 
     @GetMapping
-    public OpenMeteoResponse getOriginalWeatherData(
+    public BaseResponse<OpenMeteoResponse> getOriginalWeatherData(
             @RequestParam double latitude,
             @RequestParam double longitude,
             @RequestParam("start_date") String startDate,
@@ -29,7 +30,7 @@ public class WeatherController {
     }
 
     @GetMapping("/process")
-    public OpenMeteoProcessResponse getProcessedWeatherData(
+    public BaseResponse<OpenMeteoProcessResponse> getProcessedWeatherData(
             @RequestParam double latitude,
             @RequestParam double longitude,
             @RequestParam("start_date") String startDate,
